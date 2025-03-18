@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const checkboxes = document.querySelectorAll('.present-checkbox, .absent-checkbox');
 
         checkboxes.forEach(checkbox => {
-            const studentId = checkbox.namespaceURI.split('_')[1];
+            const studentId = checkbox.name.split('_')[1];
             if (checkbox.checked){
                 attendanceData[studentId] = checkbox.classList.contains('present-checkbox') ? 'present' : 'absent';
             }
