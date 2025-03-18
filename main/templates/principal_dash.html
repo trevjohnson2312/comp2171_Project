@@ -6,7 +6,6 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Attendance Dashboard</title>
-        <link rel="icon" type="image/x-icon" href="">
         <link rel="stylesheet" href="{{ url_for('static', filename = 'css/style.css') }}">
                                         
     </head>
@@ -51,15 +50,15 @@
             <li><a href="#">Features</a>
                 <ul>
                     <li>
-                        <a href="{{ url_for('edit_registry') }}">Edit/Remove student</a>
-                        <a href="">View attendance history</a>
-                        <a href="">Generate Monthly Report</a>
-                        <a href="">Edit Access Control</a> 
+                        <a href="{{ url_for('index_edit_registry') }}">Edit/Remove student</a>
+                        <a href="{{ url_for('index_view_atten') }}">View attendance history</a>
+                        <a href="{{ url_for('index_gen_monthly_rep') }}">Generate Monthly Report</a>
+                        <a href="{{ url_for('index_edit_access_con') }}">Edit Access Control</a> 
                     </li>
                 </ul>
             </li>
         </ul>
-        <form action = "{{ url_for('logout') }} method = "POST" class = "logout-form">
+        <form action = "{{ url_for('logout') }}" class = "logout-form">
             <button type = "submit" class = "logout-button">Logout</button>
         </form>
     </nav>

@@ -63,7 +63,8 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
 
-# Routes for Teacher
+
+# Routes for Teacher----------------------------------------------------------------------------------------------------
 @app.route('/teacher_dash')
 def index_teach():
     if 'loggedin' in session and session['role'] == 'Teacher':
@@ -122,7 +123,7 @@ def back_teacher():
     return redirect(url_for('index_teach'))
 
 
-# Routes for Principal and Dean
+# Routes for Principal and Dean----------------------------------------------------------------------------------------------------
 @app.route('/principal_dash')
 def index_principal():
     if 'loggedin' in session and session['role'] == 'Principal':
@@ -138,8 +139,85 @@ def index_dean():
         return render_template('dean_dash.html',audit_logs = audit_logs)
     return redirect(url_for('login'))
 
+@app.route('/principal_dash/generate_monthly_report')
+def index_gen_monthly_rep():
+    if 'loggedin' in session and session['role'] == 'Principal':
+        return render_template('gen_monthly_report.html')
+    return redirect(url_for('index_principal'))
+
+@app.route('/principal_dash/edit_access_control')
+def index_edit_access_con():
+    if 'loggedin' in session and session['role'] == 'Principal':
+        return render_template('edit_access_control.html')
+    return redirect(url_for('index_principal'))
+
+@app.route('/Generatereport', methods=['POST'])
+def generate_report():
+    try:
+        data = request.get_json()
+        student_id = data.get('student_id')
+        grade = data.get('grade')
+        month = data.get('month')
+        year = data.get('year')
+
+        query = db.session.query(
+            Students.id.label('student_id'),
+            Students.name,
+            Students.grade,
+            StudentAttendance.status,
+            StudentAttendance.date
+        ).join(StudentAttendance, Students.id == StudentAttendance.student_id)
+
+        if month and year:
+            query = query.filter(db.func.month(StudentAttendance.date) == month,
+                                db.func.year(StudentAttendance.date) == year)
+
+        if student_id:
+            query = query.filter(Students.id == student_id)
+
+        if grade:
+            query = query.filter(Students.grade == grade)
+
+        results = query.all()
+
+        attendance_data = {}
+        for row in results:
+            student_id = row.student_id
+
+            if student_id not in attendance_data:
+                attendance_data[student_id] = {
+                    'name': row.name,
+                    'grade': row.grade,
+                    'totalPresent': 0,
+                    'totalAbsent': 0,
+                    'totalLate': 0,
+                    'attendancePercentage': 0,
+                    'absenceDates': [],
+                    'lateDates': []
+                }
+
+            if row.status == 'present':
+                attendance_data[student_id]['totalPresent'] += 1
+            elif row.status == 'absent':
+                attendance_data[student_id]['totalAbsent'] += 1
+                attendance_data[student_id]['absenceDates'].append(row.date.strftime('%Y-%m-%d'))
+            elif row.status == 'late':
+                attendance_data[student_id]['totalLate'] += 1
+                attendance_data[student_id]['lateDates'].append(row.date.strftime('%Y-%m-%d'))
+
+        for student_id, data in attendance_data.items():
+            total_days = data['totalPresent'] + data['totalAbsent'] + data['totalLate']
+            data['attendancePercentage'] = (data['totalPresent'] / total_days) * 100 if total_days > 0 else 0
+            data['absenceDates'].sort()
+            data['lateDates'].sort()
+
+        return jsonify(list(attendance_data.values())), 200
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    
 @app.route('/edit_registry')
-def edit_registry():
+def index_edit_registry():
     if 'loggedin' in session and (session['role'] == 'Dean' or session['role'] == 'Principal'):
         return render_template('edit_registry.html')
     return redirect(url_for('login'))
@@ -270,7 +348,17 @@ def back_principal():
 def back_dean():
     return redirect(url_for('index_dean'))
 
-# Routes for PreSec
+@app.route('/back_ViewAtten')
+def back_view_atten():
+    if session['role'] == 'Teacher':
+        return redirect(url_for('index_teach'))
+    elif session['role'] == 'Principal':
+        return redirect(url_for('index_principal'))
+    else: 
+        return redirect(url_for('index_dean'))
+
+
+# Routes for PreSec----------------------------------------------------------------------------------------------------
 @app.route('/presec_dash')
 def index_presec():
     if 'loggedin' in session and (session['role'] == 'Prefect' or session['role'] == 'Security'):
