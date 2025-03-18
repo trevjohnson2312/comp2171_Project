@@ -7,7 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Attendance Dashboard</title>
         <link rel="icon" type="image/x-icon" href="">
-        <link rel="stylesheet" href="{{ url_for('static', filename='registry_style.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/registry_style.css') }}">
                                         
     </head>
     <body>
@@ -22,25 +22,24 @@
 
 <header>
     <div class = "logo">
-        <img src="{{ url_for('static', filename='logo-.png') }}" alt="school-logo">
+        <img src="{{ url_for('static', filename = 'logo-.png') }}" alt="school-logo">
     </div>
     <nav class="navbar">
         <ul>
             <li><a href="Principal_dashboard.html">Home</a>
             <li><a href="#">Features</a>
                 <ul>
-                    <li><a href="View_attendance_principal.html">View attendance history</a>
-                        <a href="generate_report.html">Generate Report</a> 
-                        <a href="Edit_Access_control.html">Edit Access Control</a> 
+                    <li><a href="">View attendance history</a>
+                        <a href="">Generate Report</a> 
+                        <a href="">Edit Access Control</a> 
                     </li>
                 </ul>
             </li>
         </ul>
-        <form action = "logout.php" method = "POST" class = "logout-form">
+        <form action = "{{ url_for('logout') }} method = "POST" class = "logout-form">
             <button type = "submit" class = "logout-button">Logout</button>
         </form>
     </nav>
 </header>
 
-<script src="script.js"></script>
 </html>
