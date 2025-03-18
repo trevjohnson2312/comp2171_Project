@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Attendance Report</title>
+    <link rel="icon" type="image/x-icon" href="">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/gen_monthly_rep.css') }}"> 
+</head>
+<body>
+    <h2 class="title">Monthly Attendance Report</h2>
+    <div class="filter-form">
+        <form id="attendanceFilters">
+            <div class="filter-item">
+                <label for="grade">Form:</label>
+                <select id="grade" name="grade">
+                    <option value="">Select Grade</option>
+                    <option value="1">1st Form</option>
+                    <option value="2">2nd Form</option>
+                    <option value="3">3rd Form</option>
+                    <option value="4">4th Form</option>
+                    <option value="5">5th Form</option>
+                    <option value="6">Lower 6</option>
+                    <option value="7">Upper 6</option>                
+                </select>
+            </div>
+            <div class="filter-item">
+                <label for="studentId">Student:</label>
+                <select id="studentId" name="student_id">
+                    <option value="">Select Student</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label for="month">Month:</label>
+                <select id="month" name="month">
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label for="year">Year:</label>
+                <select id="year" name="year">
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                </select>
+            </div>
+            <button type="button" onclick="fetchAuditLogs()" class="submit-button">Generate Report</button>
+        </form>
+    </div>
+    <div>
+        <label for="reportOutput">Attendance Report Output:</label>
+        <section class="audit-log">
+            <h3>Monthly Report</h3>
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Grade</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Late</th>
+                        <th>Percentage</th>
+                        <th>Absent Dates</th>
+                        <th>Late Dates</th>
+                    </tr>
+                </thead>
+                <tbody id="auditLogsBody">
+                </tbody>
+            </table>
+        </section>
+    </div>
+    <script src="{{ url_for('static', filename='js/gen_monthly_rep.js') }}"></script>
+</body>
+<header>
+    <div class = "logo">
+        <img src="{{ url_for('static', filename = 'logo-.png') }}" alt="school-logo">
+    </div>
+    <nav class="navbar">
+        <form action = "{{ url_for('back_principal') }}" class = "back-form">
+            <button type = "submit" class = "back-button">Back</button>
+        </form>
+    </nav>
+</header>
+</html>
