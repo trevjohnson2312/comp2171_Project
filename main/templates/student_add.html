@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='edit_style.css') }}">
+    <title>Add Student</title>
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='logo-.png') }}" alt="school-logo">
+        </div>
+        <nav class="navbar">
+            <a href="{{ url_for('edit_registry') }}" class="logout-button">Back</a>  
+        </nav>
+    </header>
+
+    <div class="select-container">
+        <h2 class="title">Add Student</h2>
+        <form id="studentForm" action="{{url_for('add_student_update') }}" method="POST">
+            <h3>Student Information</h3>
+            <div>
+                <input type="text" name="student_id" placeholder="Student ID Number" class="search-field" required>
+                <input type="text" name="st_first_name" placeholder="First Name" class="search-field" required>
+                <input type="text" name="st_last_name" placeholder="Last Name" class="search-field" required>
+                <input type="text" name="grade" placeholder="Grade" class="search-field" required>              
+            </div>                  
+            <h3>Parent Information</h3>
+            <div>
+                <input type="text" name="parent_first_name" placeholder="First Name" class="search-field" required>
+                <input type="text" name="parent_last_name" placeholder="Last Name" class="search-field" required>
+                <input type="email" name="parent_email" placeholder="Email" class="search-field" required>
+                <input type="tel" name="parent_telephone" placeholder="Telephone Number" class="search-field" required>            
+            </div>
+            <div>
+                <button type="submit" id="submit-btn">Submit</button>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+</html>
