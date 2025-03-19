@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-    
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance Dashboard</title>
+    <title>Remove Student</title>
     <link rel="icon" type="image/x-icon" href="">
-    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/edit_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename ='css/edit_style.css') }}">
 </head>
 
 <body>
@@ -18,51 +18,17 @@
         <nav class="navbar">
             <form action = "{{ url_for('back_principal') }}" method = "POST" class = "back">
                 <button type = "submit" class = "back-button">Back</button>
-            </form>  
+            </form>
         </nav>
     </header>
 
     <div class="select-container">
-        <h2 class="title">Edit Student Information</h2>
-        <form action="{{ url_for('edit_student') }}" method="GET">
-            <input type="text" id="student_id" placeholder="Student ID Number" class="search-field">
-            <button type="submit" id="submit-btn">Submit</button>
+        <h2 class="title">Remove Student</h2>
+        <form id="studentForm" action="{{url_for('remove_student_update') }}" method="POST">
+            <input type="text" id="student_id" name="student_id" placeholder="Student ID Number" class="search-field" required>
+            <button type="submit">Submit</button>
         </form>
-        
-        {% if student and parent %}
-        <div class="student-info" id="student-info">
-            <h3>Student Details</h3>
-            <form action="{{url_for('edit_student_update')}}" method="POST">
-                <input type="hidden" name="student_id" value="{{ student.id }}">
-
-                <label for="st_first_name">First Name:</label>
-                <input type="text" id="st_first_name" name="st_first_name" value="{{student.name.split(' ')[0]}}" required>
-
-                <label for="st_last_name">last Name:</label>
-                <input type="text" id="st_last_name" name="st_last_name" value="{{student.name.split(' ')[1]}}" required>
-
-                <label for="st_first_name">Grade:</label>
-                <input type="text" id="grade" name="grade" value="{{student.grade}}" required>
-
-                <h3>Parent Details</h3>
-
-                <label for="st_first_name">First Name:</label>
-                <input type="text" id="parent_first_name" name="parent_first_name" value="{{parent.name.split(' ')[0]}}" required>
-
-                <label for="st_first_name">Last Name:</label>
-                <input type="text" id="parent_last_name" name="parent_last_name" value="{{parent.name.split(' ')[1]}}" required>
-
-                <label for="st_first_name">Parent Email:</label>
-                <input type="email" id="parent_email" name="st_first_name" value="{{parent.name.split(' ')[0]}}" required>
-
-                <label for="st_first_name">Parent Telephone:</label>
-                <input type="text" id="parent_telephone" name="st_first_name" value="{{parent.name.split(' ')[0]}}" required>
-
-                <button type="submit" id="update-btn">Update</button>
-            </form>
-
-        </div>
-        {% endif %}
+        <div id="resultMessage"></div>
     </div>
 </body>
 
