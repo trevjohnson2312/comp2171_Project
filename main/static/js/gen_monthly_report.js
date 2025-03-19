@@ -1,3 +1,23 @@
+// Add this new function to populate student dropdown
+function populateStudentDropdown() {
+    fetch('/fetch_students')
+        .then(response => response.json())
+        .then(data => {
+            const dropdown = document.getElementById('studentId');
+            dropdown.innerHTML = '<option value="">Select Student</option>';
+            data.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = student.name;
+                dropdown.appendChild(option);
+            });
+        });
+}
+
+// Call this when page loads
+window.onload = populateStudentDropdown;
+
+// Modified fetchAuditLogs function
 function fetchAuditLogs() {
     const selectedgrade = document.getElementById('grade');
     const selectedstudentId = document.getElementById('studentId');
@@ -40,8 +60,8 @@ function fetchAuditLogs() {
                         <td>${log.totalAbsent}</td>
                         <td>${log.totalLate}</td>
                         <td>${log.attendancePercentage.toFixed(2)}%</td>
-                        <td>${log.absenceDates.join(', ')}</td>
-                        <td>${log.lateDates.join(', ')}</td>
+                        <td>${log.absenceDates?.join(', ') || ''}</td>
+                        <td>${log.lateDates?.join(', ') || ''}</td>
                     `;
                     tbody.appendChild(row);
                 });
