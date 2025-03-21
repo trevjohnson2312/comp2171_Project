@@ -151,16 +151,6 @@ def index_edit_access_con():
     return redirect(url_for('index_principal'))
 
 #Generate Report
-@app.route('/fetch_years', methods=['GET'])
-def fetch_years():
-    try:
-        years = db.session.query(db.func.year(StudentAttendance.date)).distinct().all()
-        
-        year_list = sorted([year[0] for year in years if year[0] is not None])
-        return jsonify(year_list), 200
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
 @app.route('/Generatereport', methods=['POST'])
 def generate_report():
     try:
@@ -182,6 +172,7 @@ def generate_report():
         )
 
         if month and year:
+           
             attendance_subquery = db.session.query(
                 StudentAttendance.student_id,
                 StudentAttendance.status,
@@ -210,51 +201,57 @@ def generate_report():
 
         attendance_data = {}
         for row in results:
-            student_id = row.student_id
-            
+            stud_id = row.student_id
             status = row.status if hasattr(row, 'status') else None
             date = row.date if hasattr(row, 'date') else None
 
-            if student_id not in attendance_data:
-                attendance_data[student_id] = {
+            if stud_id not in attendance_data:
+                attendance_data[stud_id] = {
                     'name': row.name,
                     'grade': row.grade,
-                    'totalPresent': 0,
-                    'totalAbsent': 0,
-                    'totalLate': 0,
-                    'attendancePercentage': 0,
-                    'absenceDates': set(),  
+                    'presentDates': set(),
+                    'absenceDates': set(),
                     'lateDates': set(),
                 }
 
             if status and date:
+                date_str = date.strftime('%Y-%m-%d')
                 if status == 'present':
-                    attendance_data[student_id]['totalPresent'] += 1
+                    attendance_data[stud_id]['presentDates'].add(date_str)
                 elif status == 'absent':
-                    attendance_data[student_id]['totalAbsent'] += 1
-                    attendance_data[student_id]['absenceDates'].add(date.strftime('%Y-%m-%d'))
+                    attendance_data[stud_id]['absenceDates'].add(date_str)
                 elif status == 'late':
-                    attendance_data[student_id]['totalLate'] += 1
-                    attendance_data[student_id]['lateDates'].add(date.strftime('%Y-%m-%d'))
+                    attendance_data[stud_id]['lateDates'].add(date_str)
 
-        for sid, data_item in attendance_data.items():
-            total_days = data_item['totalPresent'] + data_item['totalAbsent'] + data_item['totalLate']
-            data_item['attendancePercentage'] = (data_item['totalPresent'] / total_days) * 100 if total_days > 0 else 0
-            data_item['absenceDates'] = sorted(data_item['absenceDates'])
-            data_item['lateDates'] = sorted(data_item['lateDates'])
+        report = []
+        for stud_id, data_item in attendance_data.items():
+            totalPresent = len(data_item['presentDates'])
+            totalAbsent = len(data_item['absenceDates'])
+            totalLate = len(data_item['lateDates'])
+            total_days = totalPresent + totalAbsent + totalLate
+            attendancePercentage = (totalPresent / total_days) * 100 if total_days > 0 else 0
 
-        return jsonify(list(attendance_data.values())), 200
+            report.append({
+                'name': data_item['name'],
+                'grade': data_item['grade'],
+                'totalPresent': totalPresent,
+                'totalAbsent': totalAbsent,
+                'totalLate': totalLate,
+                'attendancePercentage': attendancePercentage,
+                'absenceDates': sorted(data_item['absenceDates']),
+                'lateDates': sorted(data_item['lateDates']),
+            })
+
+        return jsonify(report), 200
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-<<<<<<< Updated upstream
+
     
-=======
 
  ################################################################################################################  
 
 
->>>>>>> Stashed changes
 @app.route('/edit_registry')
 def index_edit_registry():
     if 'loggedin' in session and (session['role'] == 'Dean' or session['role'] == 'Principal'):
