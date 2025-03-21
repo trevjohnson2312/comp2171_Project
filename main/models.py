@@ -31,6 +31,7 @@ class StudentAudit(db.Model):
     student_id = db.Column(INTEGER(11))
     operation = db.Column(String(20))
     changed_at = db.Column(TIMESTAMP, server_default=text('current_timestamp()'))
+    changed_by = db.Column(String(20))
 
 
 class Students(db.Model):

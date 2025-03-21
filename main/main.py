@@ -19,7 +19,8 @@ def log_operation(student_id: int, operation: str):
     audit_log = StudentAudit(
         student_id = student_id,
         operation = operation,
-        changed_at = datetime.now()
+        changed_at = datetime.now(),
+        changed_by = session['role']
     )
 
     db.session.add(audit_log)
@@ -245,6 +246,11 @@ def generate_report():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
+
+
+# Routes Edit Registry----------------------------------------------------------------------------------------------------
+
     
 @app.route('/edit_registry')
 def index_edit_registry():
