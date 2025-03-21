@@ -1,4 +1,4 @@
-// Add this new function to populate student dropdown
+
 function populateStudentDropdown() {
     fetch('/fetch_students')
         .then(response => response.json())
@@ -13,41 +13,40 @@ function populateStudentDropdown() {
             });
         });
 }
+function populateYearDropdown() {
+    fetch('/fetch_years')
+        .then(response => response.json())
+        .then(data => {
+            const dropdown = document.getElementById('year');
+            dropdown.innerHTML = '<option value="">Select Year</option>';
+            data.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                dropdown.appendChild(option);
+            });
+        });
+}
 
-// Call this when page loads
-window.onload = populateStudentDropdown;
-
-// Modified fetchAuditLogs function
 function fetchAuditLogs() {
-    const selectedgrade = document.getElementById('grade');
-    const selectedstudentId = document.getElementById('studentId');
-    const selectedmonth = document.getElementById('month');
-    const selectedyear = document.getElementById('year');
+    const selectedgrade = document.getElementById('grade').value;
+    const selectedstudentId = document.getElementById('studentId').value;
+    const selectedmonth = document.getElementById('month').value;
+    const selectedyear = document.getElementById('year').value;
 
-    const selectedgradeval = selectedgrade.value;
-    const selectedgradestudentIdval = selectedstudentId.value;
-    const selectedmonthval = selectedmonth.value;
-    const selectedyearval = selectedyear.value;
-
-    if (selectedgradeval || selectedgradestudentIdval || selectedmonthval || selectedyearval) {
-        const filters = {
-            student_id: selectedgradestudentIdval,
-            grade: selectedgradeval,
-            month: selectedmonthval,
-            year: selectedyearval
-        };
+    if (selectedgrade || selectedstudentId || selectedmonth || selectedyear) {
+        const filters = { student_id: selectedstudentId, grade: selectedgrade, month: selectedmonth, year: selectedyear };
 
         fetch('/Generatereport', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(filters)
         })
         .then(response => response.json())
         .then(data => {
             const tbody = document.getElementById('auditLogsBody');
             tbody.innerHTML = '';
+
             if (data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9">No attendance records available.</td></tr>';
             } else {
@@ -60,17 +59,20 @@ function fetchAuditLogs() {
                         <td>${log.totalAbsent}</td>
                         <td>${log.totalLate}</td>
                         <td>${log.attendancePercentage.toFixed(2)}%</td>
-                        <td>${log.absenceDates?.join(', ') || ''}</td>
-                        <td>${log.lateDates?.join(', ') || ''}</td>
+                        <td>${log.absenceDates.join(', ') || ''}</td>
+                        <td>${log.lateDates.join(', ') || ''}</td>
                     `;
                     tbody.appendChild(row);
                 });
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        .catch(error => console.error('Error:', error));
     } else {
         alert('Please select an item');
     }
 }
+
+window.onload = function () {
+    populateStudentDropdown();
+    populateYearDropdown();
+};

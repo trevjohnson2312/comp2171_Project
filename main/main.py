@@ -151,6 +151,16 @@ def index_edit_access_con():
     return redirect(url_for('index_principal'))
 
 #Generate Report
+@app.route('/fetch_years', methods=['GET'])
+def fetch_years():
+    try:
+        years = db.session.query(db.func.year(StudentAttendance.date)).distinct().all()
+        
+        year_list = sorted([year[0] for year in years if year[0] is not None])
+        return jsonify(year_list), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/Generatereport', methods=['POST'])
 def generate_report():
     try:
@@ -160,11 +170,9 @@ def generate_report():
         month = data.get('month')
         year = data.get('year')
 
-        # Validate month/year combination
         if (month or year) and not (month and year):
             return jsonify({"error": "Both month and year are required when filtering by date."}), 400
 
-        # Base query
         query = db.session.query(
             Students.id.label('student_id'),
             Students.name,
@@ -173,9 +181,7 @@ def generate_report():
             StudentAttendance.date
         )
 
-        # Handle date filtering with a subquery
         if month and year:
-            # Create subquery for filtered attendance
             attendance_subquery = db.session.query(
                 StudentAttendance.student_id,
                 StudentAttendance.status,
@@ -185,7 +191,6 @@ def generate_report():
                 db.func.year(StudentAttendance.date) == int(year)
             ).subquery()
 
-            # Outer join with subquery
             query = query.outerjoin(
                 attendance_subquery,
                 Students.id == attendance_subquery.c.student_id
@@ -194,10 +199,8 @@ def generate_report():
                 attendance_subquery.c.date
             )
         else:
-            # Regular outerjoin without date filter
             query = query.outerjoin(StudentAttendance, Students.id == StudentAttendance.student_id)
 
-        # Apply other filters
         if student_id:
             query = query.filter(Students.id == student_id)
         if grade:
@@ -207,8 +210,8 @@ def generate_report():
 
         attendance_data = {}
         for row in results:
-            # Extract values from row (handling subquery structure)
             student_id = row.student_id
+            
             status = row.status if hasattr(row, 'status') else None
             date = row.date if hasattr(row, 'date') else None
 
@@ -220,32 +223,38 @@ def generate_report():
                     'totalAbsent': 0,
                     'totalLate': 0,
                     'attendancePercentage': 0,
-                    'absenceDates': [],
-                    'lateDates': []
+                    'absenceDates': set(),  
+                    'lateDates': set(),
                 }
 
-            if status:
+            if status and date:
                 if status == 'present':
                     attendance_data[student_id]['totalPresent'] += 1
                 elif status == 'absent':
                     attendance_data[student_id]['totalAbsent'] += 1
-                    attendance_data[student_id]['absenceDates'].append(date.strftime('%Y-%m-%d'))
+                    attendance_data[student_id]['absenceDates'].add(date.strftime('%Y-%m-%d'))
                 elif status == 'late':
                     attendance_data[student_id]['totalLate'] += 1
-                    attendance_data[student_id]['lateDates'].append(date.strftime('%Y-%m-%d'))
+                    attendance_data[student_id]['lateDates'].add(date.strftime('%Y-%m-%d'))
 
-        # Calculate percentages and sort dates
-        for student_id, data in attendance_data.items():
-            total_days = data['totalPresent'] + data['totalAbsent'] + data['totalLate']
-            data['attendancePercentage'] = (data['totalPresent'] / total_days) * 100 if total_days > 0 else 0
-            data['absenceDates'].sort()
-            data['lateDates'].sort()
+        for sid, data_item in attendance_data.items():
+            total_days = data_item['totalPresent'] + data_item['totalAbsent'] + data_item['totalLate']
+            data_item['attendancePercentage'] = (data_item['totalPresent'] / total_days) * 100 if total_days > 0 else 0
+            data_item['absenceDates'] = sorted(data_item['absenceDates'])
+            data_item['lateDates'] = sorted(data_item['lateDates'])
 
         return jsonify(list(attendance_data.values())), 200
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+<<<<<<< Updated upstream
     
+=======
+
+ ################################################################################################################  
+
+
+>>>>>>> Stashed changes
 @app.route('/edit_registry')
 def index_edit_registry():
     if 'loggedin' in session and (session['role'] == 'Dean' or session['role'] == 'Principal'):
