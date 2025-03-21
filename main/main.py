@@ -19,7 +19,8 @@ def log_operation(student_id: int, operation: str):
     audit_log = StudentAudit(
         student_id = student_id,
         operation = operation,
-        changed_at = datetime.now()
+        changed_at = datetime.now(),
+        changed_by = session['role']
     )
 
     db.session.add(audit_log)
