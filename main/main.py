@@ -25,7 +25,36 @@ def log_operation(student_id: int, operation: str):
 
     db.session.add(audit_log)
     db.session.commit()
- 
+
+def get_totalStudents():
+    try:
+        return Students.query.count()
+    except Exception as e:
+        print(f"Error fetching total students: {e}")
+        return 0
+
+def get_attenRate():
+    try:
+        tot_presents = StudentAttendance.query.filter_by(status='present').count()
+        tot_records = StudentAttendance.query.count()
+
+        if tot_records > 0:
+            percen = (tot_presents/tot_records) * 100
+            return round(percen, 2)
+        return 0.00
+    except Exception as e:
+        print(f"Error calculating attendance rate: {e}")
+        return 0.00
+
+def get_totLate_Absent():
+    tot_late = StudentAttendance.query.filter_by(status='late').count()
+    tot_absent = StudentAttendance.query.filter_by(status='absent').count()
+    totLate_Absent = tot_late + tot_absent
+
+    if totLate_Absent > 0:
+        return totLate_Absent
+    return 0
+
 @app.route('/')
 @app.route('/login', methods =['GET', 'POST'])
 def login():
@@ -68,7 +97,13 @@ def logout():
 @app.route('/teacher_dash')
 def index_teach():
     if 'loggedin' in session and session['role'] == 'Teacher':
-        return render_template('teacher_dash.html')
+        tot_stdnts = get_totalStudents()
+        atten_rate = get_attenRate()
+        totLate_Absent = get_totLate_Absent()
+        return render_template('teacher_dash.html', 
+                               tot_stdnts = tot_stdnts, 
+                               atten_rate = atten_rate,
+                               totLate_Absent = totLate_Absent)
     return redirect(url_for('login'))
 
 @app.route('/teacher_dash/edit_attendance')
@@ -128,15 +163,30 @@ def back_teacher():
 def index_principal():
     if 'loggedin' in session and session['role'] == 'Principal':
         audit_logs = StudentAudit.query.all()
+        tot_stdnts = get_totalStudents()
+        atten_rate = get_attenRate()
+        totLate_Absent = get_totLate_Absent()
         msg = 'Logged in successfully as Principal!'
-        return render_template('principal_dash.html', msg = msg, audit_logs = audit_logs)
+        return render_template('principal_dash.html', 
+                               msg = msg, 
+                               audit_logs = audit_logs, 
+                               tot_stdnts = tot_stdnts, 
+                               atten_rate = atten_rate,
+                               totLate_Absent = totLate_Absent)
     return redirect(url_for('login'))
 
 @app.route('/dean_dash')
 def index_dean():
     if 'loggedin' in session and session['role'] == 'Dean':
         audit_logs = StudentAudit.query.all()
-        return render_template('dean_dash.html',audit_logs = audit_logs)
+        tot_stdnts = get_totalStudents()
+        atten_rate = get_attenRate()
+        totLate_Absent = get_totLate_Absent()
+        return render_template('dean_dash.html',
+                               audit_logs = audit_logs, 
+                               tot_stdnts = tot_stdnts,
+                               atten_rate = atten_rate,
+                               totLate_Absent = totLate_Absent)
     return redirect(url_for('login'))
 
 @app.route('/principal_dash/generate_monthly_report')
@@ -403,4 +453,4 @@ def index_presec():
     return redirect(url_for('login'))
 
 if __name__ == "__main__":
-    app.run(host = "0.0.0.0", port = 5001, debug = True)
+    app.run(host = "0.0.0.0", port = 5005, debug = True)
