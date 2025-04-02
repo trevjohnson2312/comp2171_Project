@@ -1,73 +1,142 @@
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    background-color: #4f97de;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-}
-
-header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    background: #fffdfd;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, .1);
-    padding: 0px 7%;
-    display: flex;
-    align-items: center;
-}
+:root{
+    --primary: #3b82f6;
+    --error: #ef4444;
+    --surface: #ffffff;
+    --text: #1e293b;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --radius: 0.75rem;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
   
-  header .logo{
-    font-weight: bolder;
-    font-size: 1rem;
-    background: none;
-    padding: 0;
+  *{
     margin: 0;
-    display: inline-block;
-    max-height: 100%;
-    line-height: 1;
-}
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body{
+    font-family: sans-serif;
+    background: linear-gradient(135deg, #4f97de, 0%, #2b6cb0 100%);
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+  
+  .primary-header{
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow);
+    padding: 0.2rem 1rem;
+  }
 
-header .logo img {
-    max-height: 95px;
-    width: auto;
-    height: auto;
-}
+  .brand-logo img{
+    width: 160px;
+    height: 90px;
+    object-fit: contain;
+  }
 
-.login-container {
-    background-color: #fffdfd;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
+  .auth-container{
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+  }
 
-.login-container h2 {
-    margin-bottom: 15px;
-    margin-left: 175px;
-}
+  .auth-card{
+    background: var(--surface);
+    padding: 2.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 400px;
+    transform: translateY(20px);
+    animation: slideUp 0.5s ease forwards;
+  }
 
-.login-container input {
-    width: 80%;
-    padding: 10px;
-    margin: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
+  .auth-title{
+    color: var(--text);
+    font-size: 1.75rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
 
-.login-container button {
-    width: 30%;
-    padding: 13px;
+  .form-group{
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-input{
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: clac(var(--radius) - 2px);
     font-size: 1rem;
-    background-color: #e0473f;
+    transition: var(--transition);
+  }
+
+  .form-input:focus{
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  .form-label{
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    pointer-events: none;
+    transition: var(--transition);
+    background: var(--surface);
+    padding: 0 0.25rem;
+  }
+
+  .form-input:focus ~ .form-label,
+  .form-input:not(:placeholder-shown) ~ .form-label{
+    top: 0;
+    font-size: 0.875rem;
+    color: var(--primary);    
+  }
+
+  .btn-primary{
+    width: 100%;
+    padding: 1rem;
+    background: var(--primary);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: calc(var(--radius) - 2px);
+    font-weight: 600;
     cursor: pointer;
-    margin-left: 150px;
-    margin-top: 10px;
-}
+    transition: var(--transition);
+  }
 
-.login-container button:hover {
-    background-color: #e30909;
-}
+  .btn-primary:hover{
+    background: #1d4ed8;
+    transform: translateY(-1px);
+  }
+
+  .error-message{
+    color: var(--error);
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    text-align: center;
+    display: none;
+  }
+
+  @keyframes slideUp{
+    to{
+        transform: translateY(0);
+        opacity: 1;
+    }
+  }
+
+  @media (max-width: 480px){
+    .auth-card{
+        padding: 1.5rem;
+    }
+
+    .brand-logo img{
+        width: 120px;
+        height: 70px;
+    }
+  }

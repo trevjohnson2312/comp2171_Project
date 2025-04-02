@@ -5,28 +5,41 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Screen</title>
-    <link rel="icon" type="image/x-icon" href="">
+    <title>EduTrack Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename = 'css/login.css') }}">                 
 </head>
 
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form action="{{ url_for('login') }}" method="POST">
-            <input type="text" name="username" placeholder="Username">
-            <input type="password" name="password" placeholder="Password">
-            <div>
-                <button class = "btn btn-submit" id = "submitButton">Login</button>
+    <header class="primary-header">
+        <div class = "header-content">
+            <div class="brand-logo">
+                <img src = "{{ url_for('static', filename = 'logo-.png') }}" alt = "school-logo" width="160" height="90">
             </div>
-            <div id = "error-message" style = "color: red; display: none;"></div>
-        </form>
-    </div>
-</body>
+        </div>
+    </header>
 
-<header>
-    <div class = "logo">
-        <img src = "{{ url_for('static', filename = 'logo-.png') }}" alt = "school-logo">
-    </div>
-</header>
+    <main class="auth-container">
+        <div class="auth-card">
+            <h1 class="auth-title">Welcome</h1>
+
+            <form class="auth-form" action="{{ url_for('login') }}" method="POST">
+                <div class="form-group">
+                    <input type="text" name="username" id="username" class="form-input" placeholder=" " required>
+                    <label for="username" class="form-label">Username</label>
+                </div>
+                
+                <div class="form-group">
+                    <input type="password" name="password" id="password" class="form-input" placeholder=" " required>
+                    <label for="password" class="form-label">Password</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <span class="btn-text">Login</span>
+                </button>
+
+                <div class="error-message" aria-live="polite"></div>
+            </form>
+        </div>
+    </main>
+</body>
 </html>
