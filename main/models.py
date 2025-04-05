@@ -39,7 +39,7 @@ class Students(db.Model):
 
     id = db.Column(BIGINT(11), primary_key=True)
     name = db.Column(Text)
-    grade = db.Column(INTEGER(11))
+    grade = db.Column(Text)
 
 
 class Users(db.Model):

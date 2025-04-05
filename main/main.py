@@ -276,7 +276,7 @@ def generate_report():
 
         report = []
         for stud_id, data_item in attendance_data.items():
-            totalPresent = len(data_item['presentDates'])
+            totalPresent = len(data_item['presentDates']) + len(data_item['absenceDates'])
             totalAbsent = len(data_item['absenceDates'])
             totalLate = len(data_item['lateDates'])
             total_days = totalPresent + totalAbsent + totalLate
@@ -298,10 +298,7 @@ def generate_report():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-    
-
- ################################################################################################################  
-
+################################################################################################################  
 
 @app.route('/edit_registry')
 def index_edit_registry():
@@ -448,9 +445,55 @@ def back_view_atten():
 # Routes for PreSec----------------------------------------------------------------------------------------------------
 @app.route('/presec_dash')
 def index_presec():
-    if 'loggedin' in session and (session['role'] == 'Prefect' or session['role'] == 'Security'):
+    if 'loggedin' in session and (session['role'] in ['Prefect', 'Security']):
         return render_template('presec_dash.html')
     return redirect(url_for('login'))
 
+@app.route('/presec_dash/mark_late', methods=['POST'])
+def mark_late_attendance():
+    if 'loggedin' not in session or (session['role'] not in ['Prefect', 'Security']):
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+    
+    try:
+        data = request.get_json()
+
+        if not data or 'studentId' not in data:
+            return jsonify({"success": False, "error": "Invalid input data"}), 400
+        
+        student_id = data['studentId']
+
+        student = Students.query.get(student_id)
+        if not student:
+            return jsonify({"success": False, "error": "Student not found"}), 404
+        
+        current_date = datetime.utcnow().date()
+
+        attendance = StudentAttendance.query.filter_by(
+            student_id = student_id,
+            date = current_date
+        ).first()
+
+        if attendance:
+            attendance.status = 'late'
+        else:
+            new_attendance = StudentAttendance(
+                student_id = student_id,
+                status = 'late',
+                date = current_date
+            )
+            db.session.add(new_attendance)
+
+        db.session.commit()
+        return jsonify({
+            "success": True, 
+            "message": "Attendance updated successfully"
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "success": False, 
+            "error": str(e)
+        }), 500
+    
 if __name__ == "__main__":
     app.run(host = "0.0.0.0", port = 5005, debug = True)
