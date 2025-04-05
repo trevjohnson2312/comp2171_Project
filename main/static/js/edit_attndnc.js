@@ -1,4 +1,29 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const notifArea = document.createElement('div');
+    notifArea.className = 'notification-container';
+    document.body.appendChild(notifArea);
+
+    const showNotif = (message, type = 'info') => {
+        const notifs = document.createElement('div');
+        notifs.className = `notification ${type}`;
+        notifs.innerHTML = `
+        <i class="fas ${getNotificationIcon(type)}"></i>
+        <span>${message}</span>`;
+
+        notifArea.appendChild(notifs);
+        setTimeout(() => notifs.remove(), 5000);
+    }
+
+    const getNotificationIcon = (type) => {
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-times-circle',
+            warning: 'fa-exclamation-circle',
+            info: 'fa-info-circle'
+        };
+        return icons[type] || 'fa-info-circle';
+    }
+
     const classButton = document.getElementById("classButton");
     const submitButton = document.getElementById("submitButton");
     const attendanceTable = document.getElementById("attendanceRegister");
@@ -62,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error fetching students: ', error);
-                alert('Failed to load students');
+                showNotif('Failed to load students', 'error');
             });
     });
 
@@ -95,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                alert('Attendance successfully updated!!');
+                showNotif('Attendance successfully updated!!', 'success');
                 classButton.style.display = 'inline-block';
                 submitButton.style.display = 'none';
                 attendanceTable.style.display = 'none';
@@ -104,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error updating attendance: ', error);
-                alert('Failed to update attendance');
+                showNotif('Failed to update attendance!', 'error');
             });
     });
 });

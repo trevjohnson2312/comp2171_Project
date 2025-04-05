@@ -4,43 +4,47 @@
     <meta charset = "UTF-8">
     <meta http-equiv = "X-UA-Compatible" content = "IE=edge">
     <meta name = "viewport" content = "width = device-width, initial-scale = 1.0">
-    <title>Attendance Dashboard</title>
-    <link rel = "icon" type = "image/x-icon" href = "">
-    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/edit_attndnc_style.css') }}">
-                                    
+    <title>Attendance Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_attndnc_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
-    <div class = "container">
-        <h2 class = "title">Attendance Register</h2>
-        <table class = "attendance-register" id = "attendanceRegister" style = "display: none;">
-            <thead>
-                <tr>
-                    <th>Student Name</th>
-                    <th>Present</th>
-                    <th>Absent</th>
-                </tr>
-            </thead>
-            <tbody id = "studentList"></tbody>
-        </table>
-
-        <div class = "btn-group">
-            <button class = "btn btn-class" id = "classButton">Load Class</button>
-            <button class = "btn btn-submit" id = "submitButton" style = "display: none;" disabled>Submit Attendance</button>
+    <header class="primary-header">
+        <div class = "header-content">
+            <div class="brand-logo">
+                <img src = "{{ url_for('static', filename = 'images/logo-.png') }}" alt="school-logo" loading="lazy" width="120" height="60">
+            </div>
+            <nav class="header-nav">
+                <a href="{{ url_for('back_teacher') }}"  class="back-button">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </nav>
         </div>
-    </div>
+    </header>
 
-<header>
-    <div class = "logo">
-        <img src = "{{ url_for('static', filename = 'logo-.png') }}" alt="school-logo">
-    </div>
-    <nav class="navbar">
-        <form action = "{{ url_for('back_teacher') }}" method = "" class = "back">
-            <button type = "submit" class = "back-button">Back</button>
-        </form>
-    </nav>
-</header>
-
-<script src = "{{ url_for('static', filename = 'js/edit_attndnc.js') }}"></script>
+    <main class="main-content">
+        <div class = "dashboard-container">
+            <h1 class = "page-title">Attendance Register</h1>
+            <div>
+                <table class = "attendance-table" id = "attendanceRegister" style = "display: none;">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Present</th>
+                            <th>Absent</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentList"></tbody>
+                </table>
+        
+                <div class = "action-bar">
+                    <button class = "btn btn-load" id = "classButton">Load Class</button>
+                    <button class = "btn btn-confirm" id = "submitButton" style = "display: none;" disabled>Submit Attendance</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src = "{{ url_for('static', filename = 'js/edit_attndnc.js') }}"></script>
 </body>
 </html>

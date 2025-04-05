@@ -1,67 +1,96 @@
 <!DOCTYPE html>
-    
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Attendance Dashboard</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename = 'css/style.css') }}">
-                                        
-    </head>
-    <body>
-        <h2 class="title">Principal Dashboard</h2>
-        <section class="audit-log">
-            <h3>Student Audit</h3>
-            {% if audit_logs %}
-            <table class="audit-table">
-                <thead>
-                    <tr>
-                        <th>Student ID</th>
-                        <th>Operation</th>
-                        <th>Timestamp</th>
-                        <th>Changed By</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in audit_logs %}
-                    <tr>
-                        <td>{{ log.student_id }}</td>
-                        <td>{{ log.operation }}</td>
-                        <td>{{ log.changed_at }}</td>
-                        <td>{{ log.changed_by }}</td>
-                    </tr>
-                    {% endfor %}                    
-                </tbody>
-            </table>
-            {% else %} 
-                <p>No audit logs found.</p>
-            {% endif %}             
-        </section>
-    </body>
+<html lang="en">
 
-<header>
-    <div class = "logo">
-        <img src="{{ url_for('static', filename = 'logo-.png') }}" alt="school-logo">
-    </div>
-    <nav class="navbar">
-        <ul>
-            <li><a href="{{ url_for('index_principal') }}"">Home</a></li>
-            <li><a href="#">Features</a>
-                <ul>
-                    <li>
-                        <a href="{{ url_for('index_edit_registry') }}">Edit/Remove student</a>
-                        <a href="{{ url_for('index_view_atten') }}">View attendance history</a>
-                        <a href="{{ url_for('index_gen_monthly_rep') }}">Generate Monthly Report</a>
-                        <a href="{{ url_for('index_edit_access_con') }}">Edit Access Control</a> 
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principal Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">                          
+</head>
+
+<body>
+    <header class="primary-header">
+        <div class = "header-content">
+            <a href="#" class = "brand">
+                <img src = "{{ url_for('static', filename = 'images/logo-.png') }}" alt="school-logo" class="logo">
+            </a>
+
+            <nav class="primary-nav">
+                <ul class="nav-list" role="list">
+                    <li><a href="{{ url_for('index_principal') }}" class="nav-link">Home</a></li>
+                    <li class="dropdown">
+                        <button class="nav-link dropdown-toggle" aria-expanded="false">Features</button>
+                        <ul class="dropdown-menu" role="list">
+                            <li><a href="{{ url_for('index_edit_registry') }}" class="dropdown-link">Edit/Remove Student</a></li>
+                            <li><a href="{{ url_for('index_view_atten') }}" class="dropdown-link">View Attendance History</a></li>
+                            <li><a href="{{ url_for('index_gen_monthly_rep') }}" class="dropdown-link">Generate Monthly Report</a></li>
+                            <li><a href="{{ url_for('index_edit_access_con') }}" class="dropdown-link">Edit Access Control</a></li>
+                        </ul>
                     </li>
                 </ul>
-            </li>
-        </ul>
-        <form action = "{{ url_for('logout') }}" class = "logout-form">
-            <button type = "submit" class = "logout-button">Logout</button>
-        </form>
-    </nav>
-</header>
+            </nav>
 
+            <form action = "{{ url_for('logout') }}" class = "logout-wrapper">
+                <button type = "submit" class = "btn btn-logout">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="main-content scrollable-content">
+        <div class="container">
+            <h1 class="welcome-title">Welcome back, Mrs. Campbell</h1>
+
+            <div class="dashboard-container">
+                <div class="metric-card">
+                    <h3>Total Students</h3>
+                    <div class="metric-value">{{ "{:,}".format(tot_stdnts) }}</div>
+                    <!div class="metric-change positive"></!div>
+                </div>
+                <div class="metric-card">
+                    <h3>Attendance Rate</h3>
+                    <div class="metric-value">{{ atten_rate }}%</div>
+                    <!div class="metric-change positive"></!div>
+                </div>
+                <div class="metric-card">
+                    <h3>Total Late/Absences</h3>
+                    <div class="metric-value">{{ totLate_Absent }}</div>
+                    <!div class="metric-change positive"></!div>
+                </div>
+                <div class="audit-log">
+                    <div class="audit-header">
+                        <h3>Student Audit Log</h3>
+                    </div>
+                    {% if audit_logs %}
+                    <table class="audit-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID#</th>
+                                <th>Operation</th>
+                                <th>Timestamp</th>
+                                <th>Changed By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in audit_logs %}
+                            <tr>
+                                <td>{{ log.student_id }}</td>
+                                <td>{{ log.operation }}</td>
+                                <td>{{ log.changed_at }}</td>
+                                <td>{{ log.changed_by }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                        <p>No audit logs found.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
 </html>
