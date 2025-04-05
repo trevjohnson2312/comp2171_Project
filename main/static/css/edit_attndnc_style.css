@@ -1,5 +1,6 @@
 :root{
   --primary: #3b82f6;
+  --secondary: #3f37c9;
   --error: #ef4444;
   --success: #22c55e;
   --surface: #ffffff;
@@ -7,6 +8,7 @@
   --border: #e2e8f0;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --radius: 0.5rem;
+  --header-height: 95px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -36,16 +38,17 @@ body{
 .header-content{
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1rem 2rem;
+  padding: 1rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
+  max-height: var(--header-height);
 }
 
 .brand-logo img{
-  width: 120px;
-  height: 60px;
+  width: 100px;
+  height: auto;
   object-fit: contain;
   transition: var(--transition);
 }
@@ -90,7 +93,7 @@ body{
 }
 
 .attendance-table th{
-  background: #f8fafc;
+  background: #e1e1e1;
   font-weight: 600;
   color: var(--text);
 }
@@ -137,15 +140,21 @@ body{
   background: #16a34a;
 }
 
-.btn-back{
-  background: none;
-  color: var(--primary);
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--primary);
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: var(--transition);
 }
 
-.btn-back:hover{
-  background: #f1f5f9;
+.back-button:hover {
+  background: var(--secondary);
+  transform: translateY(-1px);
 }
 
 .btn:disabled{
@@ -160,6 +169,47 @@ input[type="checkbox"]{
   height: 1.2rem;
   accent-color: var(--primary);
   cursor: pointer;
+}
+
+.notification{
+  padding: 1rem 1.5rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.notification.success{
+  border-left: 4px solid #4CAF50;
+}
+
+.notification.error{
+  border-left: 4px solid #F44336;
+}
+
+.notification.warning{
+  border-left: 4px solid #FFC107;
+}
+
+@keyframes slideIn{
+  form { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.spinner{
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin{
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px){

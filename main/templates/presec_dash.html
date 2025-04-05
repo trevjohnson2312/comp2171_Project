@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PreSec Dashboard | St. George's College</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/presec_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <header class="primary-header">
+        <div class="header-content">
+            <a href="#" class = "brand">
+                <img src = "{{ url_for('static', filename = 'images/logo-.png') }}" alt="school-logo" class="logo">
+            </a>
+
+            <form action = "{{ url_for('logout') }}" class = "logout-wrapper">
+                <button type = "submit" class = "btn btn-logout">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title">Prefect & Security Dashboard</h1>
+            <form action="{{ url_for('mark_late_attendance') }}" method="POST">
+                <input type="text" name="studentId" id="stud_id" placeholder="ID Number">
+                <!input type="text" name="studentName" id="stud_name" placeholder="Name">
+                <div class = "btn-div">
+                    <button type="button" class="btn btn-submit" id="submitButton">
+                        Submit <i class="fas fa-check"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='js/presec.js') }}"></script>
+</body>
+</html>

@@ -6,18 +6,19 @@
     <meta name = "viewport" content = "width = device-width, initial-scale = 1.0">
     <title>Attendance Register</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_attndnc_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
     <header class="primary-header">
         <div class = "header-content">
             <div class="brand-logo">
-                <img src = "{{ url_for('static', filename = 'logo-.png') }}" alt="school-logo" loading="lazy" width="120" height="60">
+                <img src = "{{ url_for('static', filename = 'images/logo-.png') }}" alt="school-logo" loading="lazy" width="120" height="60">
             </div>
             <nav class="header-nav">
-                <form action = "{{ url_for('back_teacher') }}" class = "nav-form">
-                    <button type = "submit" class = "btn btn-back">← Back to Dashboard</button>
-                </form>
+                <a href="{{ url_for('back_teacher') }}"  class="back-button">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
             </nav>
         </div>
     </header>

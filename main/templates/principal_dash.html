@@ -6,14 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Principal Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">                             
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">                          
 </head>
 
 <body>
     <header class="primary-header">
         <div class = "header-content">
             <a href="#" class = "brand">
-                <img src = "{{ url_for('static', filename = 'logo-.png') }}" alt="school-logo" class="logo">
+                <img src = "{{ url_for('static', filename = 'images/logo-.png') }}" alt="school-logo" class="logo">
             </a>
 
             <nav class="primary-nav">
@@ -49,7 +50,7 @@
                 </div>
                 <div class="metric-card">
                     <h3>Attendance Rate</h3>
-                    <div class="metric-value">{{ atten_rate }}</div>
+                    <div class="metric-value">{{ atten_rate }}%</div>
                     <!div class="metric-change positive"></!div>
                 </div>
                 <div class="metric-card">
