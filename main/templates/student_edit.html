@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remove Student</title>
+    <title>Edit Student</title>
     <link rel="icon" type="image/x-icon" href="">
     <link rel="stylesheet" href="{{ url_for('static', filename ='css/edit_style.css') }}">
 </head>
@@ -13,22 +13,49 @@
 <body>
     <header>
         <div class="logo">
-            <img src="{{ url_for('static', filename = 'logo-.png') }}" alt="school-logo">
+            <img src="{{ url_for('static', filename = 'images/logo-.png') }}" alt="school-logo" class="logo">
         </div>
         <nav class="navbar">
-            <form action = "{{ url_for('index_edit_registry') }}" method = "POST" class = "back">
-                <button type = "submit" class = "back-button">Back</button>
+            <form action="{{ url_for('index_edit_registry') }}" method="POST" class="back">
+                <button type="submit" class="back-button">Back</button>
             </form>
         </nav>
     </header>
 
     <div class="select-container">
-        <h2 class="title">Remove Student</h2>
-        <form id="studentForm" action="{{url_for('remove_student_update') }}" method="POST">
-            <input type="text" id="student_id" name="student_id" placeholder="Student ID Number" class="search-field" required>
-            <button type="submit">Submit</button>
+        <h2 class="title">Edit Student</h2>
+        
+        <form id="searchForm" action="{{ url_for('edit_student') }}" method="GET">
+            <div class="search-section">
+                <input type="text" id="student_id" name="student_id" placeholder="Student ID Number" class="search-field" value="{{ student.id if student else '' }}" required>
+                <button type="submit" name="search">Search</button>
+            </div>
         </form>
-        <div id="resultMessage"></div>
+
+        {% if student %}
+        <form id="editForm" action="{{ url_for('edit_student_update') }}" method="POST">
+            <input type="hidden" name="student_id" value="{{ student.id }}">
+            
+            <div class="edit-fields">
+                <h3>Student Information</h3>
+                <div class="name-fields">
+                    <input type="text" name="st_first_name" placeholder="First Name" value="{{ student.name.split()[0] if student.name else '' }}" required>
+                    <input type="text" name="st_last_name" placeholder="Last Name" value="{{ student.name.split()[1] if student.name and student.name.split()|length > 1 else '' }}" required>
+                </div>
+                <input type="text" name="grade" placeholder="Grade" value="{{ student.grade if student else '' }}" required>
+                
+                <h3>Parent Information</h3>
+                <div class="name-fields">
+                    <input type="text" name="parent_first_name" placeholder="Parent First Name" value="{{ parent.parent_name.split()[0] if parent and parent.parent_name else '' }}" required>
+                    <input type="text" name="parent_last_name" placeholder="Parent Last Name" value="{{ parent.parent_name.split()[1] if parent and parent.parent_name and parent.parent_name.split()|length > 1 else '' }}" required>
+                </div>
+                <input type="email" name="parent_email" placeholder="Parent Email" value="{{ parent.email if parent else '' }}" required>
+                <input type="tel" name="parent_telephone" placeholder="Parent Telephone" value="{{ parent.telephone_number if parent else '' }}" required>
+                
+                <button type="submit" class="update-button">Update</button>
+            </div>
+        </form>
+        {% endif %}
     </div>
 </body>
 

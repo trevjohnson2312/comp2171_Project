@@ -351,22 +351,31 @@ def add_student_update():
         return "Student ID already exists!", 400
 
 
-@app.route('/edit_registry/edit_student', methods = ['GET'])
+@app.route('/edit_registry/edit_student', methods=['GET'])
 def edit_student():
-    if 'loggedin' in session and (session['role'] == 'Dean' or session['role'] == 'Principal'):
+    if 'loggedin' in session and (session['role'] in ['Dean', 'Principal']):
         student_id = request.args.get('student_id')
         
-        student = Students.query.get(student_id)
-        parent = ParentsContact.query.get(student_id)
+        if student_id:
+            student = Students.query.get(student_id)
+            parent = ParentsContact.query.get(student_id)
 
-        if not student or not parent:
-            return "Student not found!", 404
-        return render_template('student_edit.html', student = student, parent = parent)
+            if not student or not parent:
+                return render_template('student_edit.html', student=None, parent=None)
+            return render_template('student_edit.html', student=student, parent=parent)
+        return render_template('student_edit.html', student=None, parent=None)
     return redirect(url_for('login'))
     
     
-@app.route('/edit_registry/edit_student', methods = ['POST'])
+@app.route('/edit_registry/edit_student', methods=['POST'])
 def edit_student_update():
+    if 'loggedin' not in session or (session['role'] not in ['Dean', 'Principal']):
+        return redirect(url_for('login'))
+    
+    if 'search' in request.form:
+        student_id = request.form['student_id']
+        return redirect(url_for('edit_student', student_id=student_id))
+    
     try:
         student_id = request.form['student_id']
         st_first_name = request.form['st_first_name']
@@ -391,11 +400,11 @@ def edit_student_update():
             parent.telephone_number = parent_telephone
 
             db.session.commit()
-            log_operation(student_id, 'Added')
-        return redirect(url_for('edit_student'))
+            log_operation(student_id, 'Updated')
+        return render_template('student_edit.html', student=None, parent=None)
     except Exception as e:
         db.session.rollback()
-        return f"An error occurred: {str(e)}", 500
+        return redirect(url_for('edit_student', student_id=request.form.get('student_id', '')))
     
 
 @app.route('/edit_registry/remove_student', methods=['GET'])

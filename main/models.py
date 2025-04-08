@@ -10,10 +10,10 @@ from extensions import db
 class ParentsContact(db.Model):
     __tablename__ = 'parents_contact'
 
-    student_id = db.Column(INTEGER(11), primary_key=True)
-    parent_name = db.Column('parent name', Text)
-    email = db.Column(String(50))
-    telephone_number = db.Column('telephone number', String(15))
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), primary_key=True)
+    parent_name = db.Column('parent name', db.Text, nullable=False) 
+    email = db.Column(db.String(50), nullable=False)
+    telephone_number = db.Column('telephone number', db.String(15), nullable=False) 
 
 
 class StudentAttendance(db.Model):
@@ -37,9 +37,9 @@ class StudentAudit(db.Model):
 class Students(db.Model):
     __tablename__ = 'students'
 
-    id = db.Column(BIGINT(11), primary_key=True)
-    name = db.Column(Text)
-    grade = db.Column(Text)
+    id = db.Column(db.BigInteger, primary_key=True)
+    name = db.Column(db.Text, nullable=False)
+    grade = db.Column(db.Text, nullable=False)
 
 
 class Users(db.Model):
