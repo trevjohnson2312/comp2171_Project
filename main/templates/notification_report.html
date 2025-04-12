@@ -13,6 +13,7 @@
                         <th>Parent</th>
                         <th>Contact</th>
                         <th>Message</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -21,8 +22,18 @@
                         <td>{{ notification.student.name }}</td>
                         <td>{{ notification.student.grade }}</td>
                         <td>{{ notification.parent.parent_name }}</td>
-                        <td>{{ notification.parent.email }}<br>{{ notification.parent.telephone_number }}</td>
+                        <td>
+                            {{ notification.parent.email }}<br>
+                            {{ notification.parent.telephone_number }}
+                        </td>
                         <td>{{ notification.message }}</td>
+                        <td>
+                            {% if notification.email_sent %}
+                                <span class="badge badge-success">Sent</span>
+                            {% else %}
+                                <span class="badge badge-warning">Failed</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -30,7 +41,7 @@
             {% else %}
             <p>No notifications were sent for this date.</p>
             {% endif %}
-            <a href="{{ url_for('attendance.send_notification') }}" class="btn btn-secondary">Back</a>
+            <a href="{{ url_for('send_notifications') }}" class="btn btn-secondary">Back</a>
         </div>
     </div>
 </div>
