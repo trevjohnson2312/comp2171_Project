@@ -14,6 +14,7 @@ class ParentsContact(db.Model):
     parent_name = db.Column('parent name', db.Text, nullable=False) 
     email = db.Column(db.String(50), nullable=False)
     telephone_number = db.Column('telephone number', db.String(15), nullable=False) 
+    students = db.relationship('Students', backref='parent_contact')
 
 
 class StudentAttendance(db.Model):
@@ -22,6 +23,7 @@ class StudentAttendance(db.Model):
     student_id = db.Column(INTEGER(11), primary_key=True)
     date = db.Column(Date, primary_key=True)
     status = db.Column(Enum('present', 'absent', 'late'))
+    student = db.relationship('Students', backref='attendances')
 
 
 class StudentAudit(db.Model):
@@ -32,6 +34,7 @@ class StudentAudit(db.Model):
     operation = db.Column(String(20))
     changed_at = db.Column(TIMESTAMP, server_default=text('current_timestamp()'))
     changed_by = db.Column(String(20))
+    student = db.relationship('Students', backref='audits')
 
 
 class Students(db.Model):
@@ -52,3 +55,19 @@ class Users(db.Model):
     username = db.Column(String(100))
     password = db.Column(String(255))
     role = db.Column(Text)
+
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+    
+    id = db.Column(INTEGER(11), primary_key=True)
+    student_id = db.Column(INTEGER(11), db.ForeignKey('students.id'), nullable=False)
+    parent_id = db.Column(INTEGER(11), db.ForeignKey('parents_contact.student_id'), nullable=False)
+    message = db.Column(Text, nullable=False)
+    date_sent = db.Column(TIMESTAMP, server_default=text('current_timestamp()'))
+    is_read = db.Column(db.Boolean, default=False)
+    attendance_date = db.Column(Date, nullable=False)
+    
+    student = db.relationship('Students', backref='notifications')
+    parent = db.relationship('ParentsContact', backref='notifications')
+    def is_dean(self):
+        return self.role.lower() == 'dean'
