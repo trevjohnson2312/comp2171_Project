@@ -11,13 +11,27 @@
 </head>
 
 <body>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash-{{ category }}">
+                {{ message }}
+                <span class="close-flash" onclick="this.parentElement.remove()">×</span>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+
     <header>
         <div class="logo">
             <img src="{{ url_for('static', filename = 'images/logo-.png') }}" alt="school-logo" class="logo">
         </div>
         <nav class="navbar">
-            <form action="{{ url_for('index_edit_registry') }}" method="POST" class="back">
-                <button type="submit" class="back-button">Back</button>
+            <form action = "{{ url_for('index_edit_registry') }}" class = "back">
+                <button type = "submit" class = "back-button">Back</button>
             </form>
         </nav>
     </header>

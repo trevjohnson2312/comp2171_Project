@@ -10,6 +10,20 @@
 </head>
 
 <body>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash-{{ category }}">
+                {{ message }}
+                <span class="close-flash" onclick="this.parentElement.remove()">×</span>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+
     <header>
         <div class="logo">
             <img src = "{{ url_for('static', filename = 'images/logo-.png') }}" alt="school-logo" class="logo">
@@ -29,7 +43,16 @@
                 <input type="text" name="student_id" placeholder="Student ID Number" class="search-field" required>
                 <input type="text" name="st_first_name" placeholder="First Name" class="search-field" required>
                 <input type="text" name="st_last_name" placeholder="Last Name" class="search-field" required>
-                <input type="text" name="grade" placeholder="Grade" class="search-field" required>              
+                <select name="grade" required>
+                    <option value="">Select Grade</option>
+                    <option value="7">1st Form (Grade 7)</option>
+                    <option value="8">2nd Form (Grade 8)</option>
+                    <option value="9">3rd Form (Grade 9)</option>
+                    <option value="10">4th Form (Grade 10)</option>
+                    <option value="11">5th Form (Grade 11)</option>
+                    <option value="12">Lower 6th Form (Grade 12)</option>
+                    <option value="13">Upper 6th Form (Grade 13)</option>
+                  </select>            
             </div>                  
             <h3>Parent Information</h3>
             <div>

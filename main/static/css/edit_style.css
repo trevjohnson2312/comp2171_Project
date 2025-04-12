@@ -99,3 +99,35 @@ button{
     font-size: 1rem;
     border-radius: 5px;
 }
+
+[class^="flash-"] {
+  padding: 12px 20px;
+  margin: 10px 0;
+  border-radius: 4px;
+  color: white;
+  font-weight: 500;
+  position: relative;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+
+.flash-success {
+  background-color: #28a745;
+  border-left: 4px solid #218838;
+}
+
+.flash-error {
+  background-color: #dc3545;
+  border-left: 4px solid #c82333;
+}
+
+.flash-warning {
+  background-color: #ffc107;
+  color: #212529;
+  border-left: 4px solid #e0a800;
+}
+
+.flash-message {
+  background-color: #17a2b8;
+  border-left: 4px solid #138496;
+}

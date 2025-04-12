@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from extensions import db
+import re
  
 app = Flask(__name__)
  
@@ -162,7 +163,7 @@ def back_teacher():
 @app.route('/principal_dash')
 def index_principal():
     if 'loggedin' in session and session['role'] == 'Principal':
-        audit_logs = StudentAudit.query.all()
+        audit_logs = StudentAudit.query.order_by(StudentAudit.changed_at.desc(),StudentAudit.student_id).all()
         tot_stdnts = get_totalStudents()
         atten_rate = get_attenRate()
         totLate_Absent = get_totLate_Absent()
@@ -178,7 +179,7 @@ def index_principal():
 @app.route('/dean_dash')
 def index_dean():
     if 'loggedin' in session and session['role'] == 'Dean':
-        audit_logs = StudentAudit.query.all()
+        audit_logs = StudentAudit.query.order_by(StudentAudit.changed_at.desc(),StudentAudit.student_id).all()
         tot_stdnts = get_totalStudents()
         atten_rate = get_attenRate()
         totLate_Absent = get_totLate_Absent()
@@ -315,41 +316,93 @@ def add_student():
 @app.route('/edit_registry/add_student', methods=['POST'])
 def add_student_update():
     try:
+        # Get form data
         student_id = request.form['student_id']
-        st_first_name = request.form['st_first_name']
-        st_last_name = request.form['st_last_name']
-        grade = request.form['grade']
-        parent_first_name = request.form['parent_first_name']
-        parent_last_name = request.form['parent_last_name']
-        parent_email = request.form['parent_email']
-        parent_telephone = request.form['parent_telephone']
+        st_first_name = request.form['st_first_name'].strip()
+        st_last_name = request.form['st_last_name'].strip()
+        raw_grade = request.form['grade'].strip()
+        parent_first_name = request.form['parent_first_name'].strip()
+        parent_last_name = request.form['parent_last_name'].strip()
+        parent_email = request.form['parent_email'].strip()
+        parent_telephone = request.form['parent_telephone'].strip()
+
+        errors = []
+        
+        name_regex = r'^[a-zA-Z\s\-\.\']+$'
+        for field, value in [('First name', st_first_name),
+                           ('Last name', st_last_name),
+                           ('Parent first name', parent_first_name),
+                           ('Parent last name', parent_last_name)]:
+            if not re.fullmatch(name_regex, value):
+                errors.append(f'{field} contains invalid characters')
+        
+        if not re.fullmatch(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', parent_email):
+            errors.append('Invalid email format')
+        
+        if not re.fullmatch(r'^[\d\s\-\+\(\)]{10,15}$', parent_telephone):
+            errors.append('Phone number must be 10-15 digits with optional formatting')
+        
+        grade_mapping = {
+            '7': '1st Form',
+            '8': '2nd Form',
+            '9': '3rd Form',
+            '10': '4th Form',
+            '11': '5th Form',
+            '12': 'Lower 6th Form',
+            '13': 'Upper 6th Form',
+
+            '1st form': '1st Form',
+            '2nd form': '2nd Form',
+            '3rd form': '3rd Form',
+            '4th form': '4th Form',
+            '5th form': '5th Form',
+            'lower 6th form': 'Lower 6th Form',
+            'upper 6th form': 'Upper 6th Form'
+        }
+        
+        normalized_grade = raw_grade.lower().strip()
+        formatted_grade = grade_mapping.get(normalized_grade)
+        
+        if not formatted_grade:
+            errors.append('Grade must be between 7-13 or in format "1st Form" to "Upper 6th Form"')
+        
+        if errors:
+            for error in errors:
+                flash(error, 'error')
+            return redirect(url_for('add_student'))
 
         student_name = f"{st_first_name} {st_last_name}"
         parent_name = f"{parent_first_name} {parent_last_name}"
 
         new_student = Students(
-            id = student_id,
-            name = student_name,
-            grade = grade
+            id=student_id,
+            name=student_name,
+            grade=formatted_grade 
         )
 
         new_parent = ParentsContact(
-            student_id = student_id,
-            parent_name = parent_name,
-            email = parent_email,
-            telephone_number = parent_telephone
+            student_id=student_id,
+            parent_name=parent_name,
+            email=parent_email,
+            telephone_number=parent_telephone
         )
 
         db.session.add(new_student)
         db.session.add(new_parent)
-        db.session.commit
+        db.session.commit()
 
         log_operation(student_id, 'Added')
+        flash('Student added successfully!', 'success')
         return redirect(url_for('add_student'))
+        
     except IntegrityError:    
         db.session.rollback()
-        return "Student ID already exists!", 400
-
+        flash('Student ID already exists!', 'error')
+        return redirect(url_for('add_student'))
+    except Exception as e:
+        db.session.rollback()
+        flash(f'An error occurred: {str(e)}', 'error')
+        return redirect(url_for('add_student'))
 
 @app.route('/edit_registry/edit_student', methods=['GET'])
 def edit_student():
@@ -361,15 +414,18 @@ def edit_student():
             parent = ParentsContact.query.get(student_id)
 
             if not student or not parent:
+                flash('Student not found!', 'error')
                 return render_template('student_edit.html', student=None, parent=None)
             return render_template('student_edit.html', student=student, parent=parent)
         return render_template('student_edit.html', student=None, parent=None)
+    flash('Please login to access this page', 'error')
     return redirect(url_for('login'))
     
     
 @app.route('/edit_registry/edit_student', methods=['POST'])
 def edit_student_update():
     if 'loggedin' not in session or (session['role'] not in ['Dean', 'Principal']):
+        flash('Unauthorized access!', 'error')
         return redirect(url_for('login'))
     
     if 'search' in request.form:
@@ -378,13 +434,57 @@ def edit_student_update():
     
     try:
         student_id = request.form['student_id']
-        st_first_name = request.form['st_first_name']
-        st_last_name = request.form['st_last_name']
-        grade = request.form['grade']
-        parent_first_name = request.form['parent_first_name']
-        parent_last_name = request.form['parent_last_name']
-        parent_email = request.form['parent_email']
-        parent_telephone = request.form['parent_telephone']
+        st_first_name = request.form['st_first_name'].strip()
+        st_last_name = request.form['st_last_name'].strip()
+        raw_grade = request.form['grade'].strip()
+        parent_first_name = request.form['parent_first_name'].strip()
+        parent_last_name = request.form['parent_last_name'].strip()
+        parent_email = request.form['parent_email'].strip()
+        parent_telephone = request.form['parent_telephone'].strip()
+
+        errors = []
+
+        name_regex = r'^[a-zA-Z\s\-\.\']+$'  
+        for field, value in [('Student first name', st_first_name),
+                           ('Student last name', st_last_name),
+                           ('Parent first name', parent_first_name),
+                           ('Parent last name', parent_last_name)]:
+            if not re.fullmatch(name_regex, value):
+                errors.append(f'{field} contains invalid characters')
+        
+        if not re.fullmatch(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', parent_email):
+            errors.append('Invalid email format')
+        
+        if not re.fullmatch(r'^[\d\s\-\+\(\)]{10,15}$', parent_telephone):
+            errors.append('Phone number must be 10-15 digits with optional formatting')
+        
+        grade_mapping = {
+            '7': '1st Form',
+            '8': '2nd Form',
+            '9': '3rd Form',
+            '10': '4th Form',
+            '11': '5th Form',
+            '12': 'Lower 6th Form',
+            '13': 'Upper 6th Form',
+            '1st form': '1st Form',
+            '2nd form': '2nd Form',
+            '3rd form': '3rd Form',
+            '4th form': '4th Form',
+            '5th form': '5th Form',
+            'lower 6th form': 'Lower 6th Form',
+            'upper 6th form': 'Upper 6th Form'
+        }
+        
+        normalized_grade = raw_grade.lower().strip()
+        formatted_grade = grade_mapping.get(normalized_grade)
+        
+        if not formatted_grade:
+            errors.append('Grade must be between 7-13 or in format "1st Form" to "Upper 6th Form"')
+        
+        if errors:
+            for error in errors:
+                flash(error, 'error')
+            return redirect(url_for('edit_student', student_id=student_id))
 
         student_name = f"{st_first_name} {st_last_name}"
         parent_name = f"{parent_first_name} {parent_last_name}"
@@ -394,16 +494,23 @@ def edit_student_update():
 
         if student and parent:
             student.name = student_name
-            student.grade = grade
+            student.grade = formatted_grade 
             parent.parent_name = parent_name
             parent.email = parent_email
             parent.telephone_number = parent_telephone
 
             db.session.commit()
             log_operation(student_id, 'Updated')
-        return render_template('student_edit.html', student=None, parent=None)
+            flash('Student information updated successfully!', 'success')
+            return redirect(url_for('edit_student'))
+        else:
+            flash('Student not found!', 'error')
+        
+        return redirect(url_for('edit_student', student_id=student_id))
+        
     except Exception as e:
         db.session.rollback()
+        flash(f'An error occurred: {str(e)}', 'error')
         return redirect(url_for('edit_student', student_id=request.form.get('student_id', '')))
     
 
@@ -414,24 +521,33 @@ def remove_student():
     return redirect(url_for('login'))
 
 
-@app.route('/edit_registry/remove_student', methods = ['POST'])
+@app.route('/edit_registry/remove_student', methods=['POST'])
 def remove_student_update():
     try:
         student_id = request.form['student_id']
 
         student = Students.query.get(student_id)
+        if not student:
+            flash('Student not found!', 'error')
+            return redirect(url_for('remove_student'))
+
         parent = ParentsContact.query.get(student_id)
+        if not parent:
+            flash('Parent contact not found for this student!', 'warning')
 
-        if student and parent:
-            db.session.delete(student)
+        db.session.delete(student)
+        if parent:
             db.session.delete(parent)
-            db.session.commit()
+        db.session.commit()
 
-            log_operation(student_id, 'Removed')
+        log_operation(student_id, 'Removed')
+        flash(f'Student {student_id} removed successfully!', 'success')
         return redirect(url_for('remove_student'))
+        
     except Exception as e:
         db.session.rollback()
-        return f"An error occurred: str{(e)}", 500
+        flash(f'An error occurred while removing student: {str(e)}', 'error')
+        return redirect(url_for('remove_student'))
 
 @app.route('/back_principal')
 def back_principal():
