@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Dean Dashboard</h2>
+    
+    <!-- Dashboard Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Students</h5>
+                    <p class="card-text display-4">{{ tot_stdnts }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Attendance Rate</h5>
+                    <p class="card-text display-4">{{ atten_rate }}%</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">Late/Absent</h5>
+                    <p class="card-text display-4">{{ totLate_Absent }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Attendance Notifications</h4>
+        </div>
+        <div class="card-body">
+            <a href="{{ url_for('send_notifications') }}" class="btn btn-primary mb-3">
+                <i class="fas fa-bell"></i> Send Notifications
+            </a>
+            
+            <h5>Recent Notifications</h5>
+            <div class="list-group">
+                {% for notification in recent_notifications %}
+                <a href="#" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{{ notification.student.name }} (Grade {{ notification.student.grade }})</h6>
+                        <small>{{ notification.date_sent.strftime('%m/%d/%Y %I:%M %p') }}</small>
+                    </div>
+                    <p class="mb-1">{{ notification.message }}</p>
+                    <small>Sent to: {{ notification.parent.parent_name }}</small>
+                </a>
+                {% else %}
+                <div class="list-group-item">
+                    No notifications sent yet.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Log Section -->
+    <div class="card">
+        <div class="card-header">
+            <h4>Recent Activity</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Operation</th>
+                            <th>Changed By</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in audit_logs %}
+                        <tr>
+                            <td>{{ log.student_id }}</td>
+                            <td>{{ log.operation }}</td>
+                            <td>{{ log.changed_by }}</td>
+                            <td>{{ log.changed_at.strftime('%m/%d/%Y %I:%M %p') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

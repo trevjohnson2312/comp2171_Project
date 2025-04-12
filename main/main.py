@@ -4,7 +4,11 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from extensions import db
 import re
- 
+from flask_mail import Mail, Message
+import os
+from flask_login import LoginManager, login_required 
+from sqlalchemy import func
+
 app = Flask(__name__)
  
 app.secret_key = 'your secret key'
@@ -13,6 +17,27 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/school_
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
  
 db.init_app(app)
+
+app = Flask(__name__)
+app.secret_key = 'your secret key'
+
+# Database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/school_db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Email configuration
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.yourschool.edu')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', True)
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'notifications@yourschool.edu')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'yourpassword')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'attendance-system@yourschool.edu')
+
+# Initialize extensions
+db = SQLAlchemy(app)
+mail = Mail(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 
 from models import Users, StudentAttendance, Students, StudentAudit, ParentsContact
 
@@ -189,6 +214,101 @@ def index_dean():
                                atten_rate = atten_rate,
                                totLate_Absent = totLate_Absent)
     return redirect(url_for('login'))
+
+@app.route('/dean_dash/send_notifications', methods=['GET', 'POST'])
+@login_required
+def send_notifications():
+    if not session.get('role') == 'Dean':
+        flash('Access denied. Only deans can send notifications.', 'danger')
+        return redirect(url_for('index_dean'))
+    
+    if request.method == 'POST':
+        selected_date = request.form.get('date')
+        try:
+            report_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Invalid date format', 'danger')
+            return redirect(url_for('send_notifications'))
+        
+        # Get students with attendance issues who have parent contact info
+        problem_students = db.session.query(
+            Students,
+            func.count(StudentAttendance.student_id).label('issue_count')
+        ).join(
+            StudentAttendance,
+            (StudentAttendance.student_id == Students.id) & 
+            (StudentAttendance.date == report_date) & 
+            (StudentAttendance.status.in_(['absent', 'late']))
+        ).join(
+            ParentsContact,
+            ParentsContact.student_id == Students.id
+        ).group_by(Students.id).all()
+        
+        if not problem_students:
+            flash('No attendance issues with parent contact info found for selected date', 'warning')
+            return redirect(url_for('send_notifications'))
+        
+        notification_count = 0
+        for student, issue_count in problem_students:
+            message = (
+                f"Attendance Notification: {student.name} (Grade {student.grade}) "
+                f"was marked as {'absent' if issue_count == 1 else 'late'} on {report_date.strftime('%m/%d/%Y')}"
+            )
+            
+            notification = Notification(
+                student_id=student.id,
+                parent_id=student.parent_contact.student_id,
+                message=message,
+                date_sent=datetime.utcnow()
+            )
+            db.session.add(notification)
+            
+            # Send email
+            try:
+                msg = Message(
+                    "Attendance Notification",
+                    recipients=[student.parent_contact.email],
+                    body=message,
+                    sender=app.config['MAIL_DEFAULT_SENDER']
+                )
+                mail.send(msg)
+                notification.email_sent = True
+                notification_count += 1
+            except Exception as e:
+                app.logger.error(f"Failed to send email for student {student.id}: {str(e)}")
+        
+        db.session.commit()
+        flash(f'Successfully sent {notification_count} notifications', 'success')
+        return redirect(url_for('notification_report', date=report_date.strftime('%Y-%m-%d')))
+    
+    return render_template('send_notifications.html')
+
+@app.route('/dean_dash/notification_report/<date>')
+@login_required
+def notification_report(date):
+    if not session.get('role') == 'Dean':
+        flash('Access denied', 'danger')
+        return redirect(url_for('index_dean'))
+    
+    try:
+        report_date = datetime.strptime(date, '%Y-%m-%d').date()
+    except ValueError:
+        flash('Invalid date format', 'danger')
+        return redirect(url_for('send_notifications'))
+    
+    notifications = (
+        Notification.query
+        .join(Students, Notification.student_id == Students.id)
+        .join(ParentsContact, Notification.parent_id == ParentsContact.student_id)
+        .filter(db.func.date(Notification.date_sent) == report_date)
+        .all()
+    )
+    
+    return render_template(
+        'notification_report.html',
+        notifications=notifications,
+        report_date=report_date
+    )
 
 @app.route('/principal_dash/generate_monthly_report')
 def index_gen_monthly_rep():
