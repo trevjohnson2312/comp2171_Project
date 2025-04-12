@@ -15,7 +15,7 @@ def create_app():
     login_manager.init_app(app)
     mail.init_app(app)
     
-    from attendance_controller import attendance_bp # Import the attendance controller
+    from main.attendance import attendance_bp # Import the attendance controller
     app.register_blueprint(attendance_bp, url_prefix='/attendance')
     
     return app
