@@ -77,7 +77,70 @@ def index_edit_atten():
 
 @app.route('/teacher_dash/view_atten_hist')
 def index_view_atten():
-    return render_template('view_attend_hist.html')
+    if 'loggedin' in session and session['role'] == 'Teacher':
+        try:
+            attendance_records = (
+                db.session.query(StudentAttendance, Students)
+                .join(Students, Students.id == StudentAttendance.student_id)
+                .order_by(StudentAttendance.date.desc())
+                .all()
+            )
+
+            records = [{
+                'student_id': s.id,
+                'student_name': s.name,
+                'status': a.status,
+                'date': a.date.strftime('%Y-%m-%d')
+            } for a, s in attendance_records]
+
+            return render_template('view_attend_hist.html', records=records)
+        except Exception as e:
+            return f"An error occurred: {str(e)}", 500
+    return redirect(url_for('login'))
+
+# Route to getch attendance history for a particular student ----------------------------------------------------------
+@app.route('/api/get_attendance_history', methods=['GET'])
+def get_attendance_history():
+    try:
+        # Get query parameters
+        student_id = request.args.get('id', type=int)
+        student_name = request.args.get('name', type=str)
+        start_date = request.args.get('start', type=str)
+        end_date = request.args.get('end', type=str)
+
+        # Query the database for the student attendance records
+        query = db.session.query(StudentAttendance, Students).join(Students, Students.id == StudentAttendance.student_id)
+
+        # Apply filters based on provided query params
+        if student_id:
+            query = query.filter(Students.id == student_id)
+        if student_name:
+            query = query.filter(Students.name.ilike(f'%{student_name}%'))
+        if start_date:
+            query = query.filter(StudentAttendance.date >= start_date)
+        if end_date:
+            query = query.filter(StudentAttendance.date <= end_date)
+
+        # Fetch results
+        records = query.all()
+
+        # Format records for response
+        attendance_data = [
+            {
+                'student_id': record.Students.id,
+                'student_name': record.Students.name,
+                'date': record.StudentAttendance.date,
+                'status': record.StudentAttendance.status
+            }
+            for record in records
+        ]
+
+        # Return the attendance data as JSON
+        return jsonify(attendance_data), 200
+
+    except Exception as e:
+        # Handle any errors
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/fetch_students', methods = ['GET'])
 def get_students():
