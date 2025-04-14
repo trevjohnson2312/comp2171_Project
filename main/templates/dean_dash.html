@@ -1,95 +1,93 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container mt-4">
-    <h2>Dean Dashboard</h2>
-    
-    <!-- Dashboard Stats -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h5 class="card-title">Total Students</h5>
-                    <p class="card-text display-4">{{ tot_stdnts }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h5 class="card-title">Attendance Rate</h5>
-                    <p class="card-text display-4">{{ atten_rate }}%</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-danger">
-                <div class="card-body">
-                    <h5 class="card-title">Late/Absent</h5>
-                    <p class="card-text display-4">{{ totLate_Absent }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
 
-    <!-- Notification Section -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4>Attendance Notifications</h4>
-        </div>
-        <div class="card-body">
-            <a href="{{ url_for('send_notifications') }}" class="btn btn-primary mb-3">
-                <i class="fas fa-bell"></i> Send Notifications
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dean Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">                          
+</head>
+
+<body>
+    <header class="primary-header">
+        <div class = "header-content">
+            <a href="#" class = "brand">
+                <img src = "{{ url_for('static', filename = 'images/logo-.png') }}" alt="school-logo" class="logo">
             </a>
-            
-            <h5>Recent Notifications</h5>
-            <div class="list-group">
-                {% for notification in recent_notifications %}
-                <a href="#" class="list-group-item list-group-item-action">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">{{ notification.student.name }} (Grade {{ notification.student.grade }})</h6>
-                        <small>{{ notification.date_sent.strftime('%m/%d/%Y %I:%M %p') }}</small>
-                    </div>
-                    <p class="mb-1">{{ notification.message }}</p>
-                    <small>Sent to: {{ notification.parent.parent_name }}</small>
-                </a>
-                {% else %}
-                <div class="list-group-item">
-                    No notifications sent yet.
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
 
-    <!-- Audit Log Section -->
-    <div class="card">
-        <div class="card-header">
-            <h4>Recent Activity</h4>
+            <nav class="primary-nav">
+                <ul class="nav-list" role="list">
+                    <li><a href="{{ url_for('index_dean') }}" class="nav-link">Home</a></li>
+                    <li class="dropdown">
+                        <button class="nav-link dropdown-toggle" aria-expanded="false">Features</button>
+                        <ul class="dropdown-menu" role="list">
+                            <li><a href="{{ url_for('index_edit_registry') }}" class="dropdown-link">Edit/Remove Student</a></li>
+                            <li><a href="{{ url_for('index_view_atten') }}" class="dropdown-link">View Attendance History</a></li>
+                            <li><a href="{{ url_for('index_edit_notification') }}" class="dropdown-link">Edit Notification</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+
+            <form action = "{{ url_for('logout') }}" class = "logout-wrapper">
+                <button type = "submit" class = "btn btn-logout">Logout</button>
+            </form>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Student ID</th>
-                            <th>Operation</th>
-                            <th>Changed By</th>
-                            <th>Timestamp</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for log in audit_logs %}
-                        <tr>
-                            <td>{{ log.student_id }}</td>
-                            <td>{{ log.operation }}</td>
-                            <td>{{ log.changed_by }}</td>
-                            <td>{{ log.changed_at.strftime('%m/%d/%Y %I:%M %p') }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    </header>
+
+    <main class="main-content scrollable-content">
+        <div class="container">S
+            <div class="dashboard-container">
+                <div class="metric-card">
+                    <h3>Total Students</h3>
+                    <div class="metric-value">{{ "{:,}".format(tot_stdnts) }}</div>
+                    <!div class="metric-change positive"></!div>
+                </div>
+                <div class="metric-card">
+                    <h3>Attendance Rate</h3>
+                    <div class="metric-value">{{ atten_rate }}%</div>
+                    <!div class="metric-change positive"></!div>
+                </div>
+                <div class="metric-card">
+                    <h3>Total Late/Absences</h3>
+                    <div class="metric-value">{{ totLate_Absent }}</div>
+                    <!div class="metric-change positive"></!div>
+                </div>
+                <div class="audit-log">
+                    <div class="audit-header">
+                        <h3>Student Audit Log</h3>
+                    </div>
+                    {% if audit_logs %}
+                    <table class="audit-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID#</th>
+                                <th>Operation</th>
+                                <th>Timestamp</th>
+                                <th>Changed By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in audit_logs %}
+                            <tr>
+                                <td>{{ log.student_id }}</td>
+                                <td>{{ log.operation }}</td>
+                                <td>{{ log.changed_at }}</td>
+                                <td>{{ log.changed_by }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                        <p>No audit logs found.</p>
+                    {% endif %}
+                </div>
             </div>
+
         </div>
-    </div>
-</div>
-{% endblock %}
+    </main>
+
+</body>
+</html>
