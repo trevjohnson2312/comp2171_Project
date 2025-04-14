@@ -9,30 +9,42 @@ document.getElementById('fetch-data').addEventListener('click', function() {
         return;
     }
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', 'viewattendance.php', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    // Constructing the URL with query parameters
+    const params = new URLSearchParams();
+    if (studentID) params.append('id', studentID);
+    if (studentName) params.append('name', studentName);
+    if (startDate) params.append('start', startDate);
+    if (endDate) params.append('end', endDate);
 
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            const response = JSON.parse(xhr.responseText);
+    fetch(`/api/get_attendance_history?${params.toString()}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response not ok.');
+            }
+            return response.json();
+        })
+        .then(data => {
             const tableBody = document.querySelector('#attendance-table tbody');
-            tableBody.innerHTML = ''; // Clear previous results
+            tableBody.innerHTML = ''; // Clearing any previous results
 
-            response.forEach(record => {
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4">No records found.</td></tr>';
+                return;
+            }
+
+            data.forEach(record => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${record.student_id}</td>
-                    <td>${record.name}</td>
+                    <td>${record.student_name}</td>
                     <td>${record.date}</td>
                     <td>${record.status}</td>
                 `;
                 tableBody.appendChild(row);
             });
-        } else {
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
             alert('Error fetching data. Please try again.');
-        }
-    };
-
-    xhr.send(`studentID=${encodeURIComponent(studentID)}&studentName=${encodeURIComponent(studentName)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`);
+        });
 });
