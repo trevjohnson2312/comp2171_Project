@@ -55,3 +55,4 @@ class Users(db.Model):
     username = db.Column(String(100))
     password = db.Column(String(255))
     role = db.Column(Text)
+
