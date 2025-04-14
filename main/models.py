@@ -55,19 +55,3 @@ class Users(db.Model):
     username = db.Column(String(100))
     password = db.Column(String(255))
     role = db.Column(Text)
-
-class Notification(db.Model):
-    __tablename__ = 'notifications'
-    
-    id = db.Column(INTEGER(11), primary_key=True)
-    student_id = db.Column(INTEGER(11), db.ForeignKey('students.id'), nullable=False)
-    parent_id = db.Column(INTEGER(11), db.ForeignKey('parents_contact.student_id'), nullable=False)
-    message = db.Column(Text, nullable=False)
-    date_sent = db.Column(TIMESTAMP, server_default=text('current_timestamp()'))
-    is_read = db.Column(db.Boolean, default=False)
-    attendance_date = db.Column(Date, nullable=False)
-    
-    student = db.relationship('Students', backref='notifications')
-    parent = db.relationship('ParentsContact', backref='notifications')
-    def is_dean(self):
-        return self.role.lower() == 'dean'
