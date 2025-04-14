@@ -192,13 +192,14 @@ def index_principal():
         tot_stdnts = get_totalStudents()
         atten_rate = get_attenRate()
         totLate_Absent = get_totLate_Absent()
+        consecutive_issues_count = len(get_students_with_consecutive_issues())
         msg = 'Logged in successfully as Principal!'
         return render_template('principal_dash.html', 
                                msg = msg, 
                                audit_logs = audit_logs, 
                                tot_stdnts = tot_stdnts, 
                                atten_rate = atten_rate,
-                               totLate_Absent = totLate_Absent)
+                               totLate_Absent = totLate_Absent,consecutive_issues_count=consecutive_issues_count)
     return redirect(url_for('login'))
 
 @app.route('/dean_dash')
@@ -208,107 +209,91 @@ def index_dean():
         tot_stdnts = get_totalStudents()
         atten_rate = get_attenRate()
         totLate_Absent = get_totLate_Absent()
+        consecutive_issues_count = len(get_students_with_consecutive_issues())
         return render_template('dean_dash.html',
                                audit_logs = audit_logs, 
                                tot_stdnts = tot_stdnts,
                                atten_rate = atten_rate,
-                               totLate_Absent = totLate_Absent)
+                               totLate_Absent = totLate_Absent,consecutive_issues_count=consecutive_issues_count)
     return redirect(url_for('login'))
 
-@app.route('/dean_dash/send_notifications', methods=['GET', 'POST'])
-@login_required
-def send_notifications():
-    if not session.get('role') == 'Dean':
-        flash('Access denied. Only deans can send notifications.', 'danger')
-        return redirect(url_for('index_dean'))
-    
-    if request.method == 'POST':
-        selected_date = request.form.get('date')
-        try:
-            report_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
-        except ValueError:
-            flash('Invalid date format', 'danger')
-            return redirect(url_for('send_notifications'))
-        
-        # Get students with attendance issues who have parent contact info
-        problem_students = db.session.query(
-            Students,
-            func.count(StudentAttendance.student_id).label('issue_count')
+def get_students_with_consecutive_issues():
+    """
+    Returns students with 3 consecutive absences or lateness
+    """
+    try:
+
+        absent_subq = db.session.query(
+            StudentAttendance.student_id,
+            StudentAttendance.date.label('date1'),
+            db.func.date_add(StudentAttendance.date, 1).label('date2'),
+            db.func.date_add(StudentAttendance.date, 2).label('date3')
+        ).filter(StudentAttendance.status == 'absent').subquery()
+
+
+        late_subq = db.session.query(
+            StudentAttendance.student_id,
+            StudentAttendance.date.label('date1'),
+            db.func.date_add(StudentAttendance.date, 1).label('date2'),
+            db.func.date_add(StudentAttendance.date, 2).label('date3')
+        ).filter(StudentAttendance.status == 'late').subquery()
+
+        students = db.session.query(
+            Students.id,
+            Students.name
+        ).join(
+            absent_subq, Students.id == absent_subq.c.student_id
         ).join(
             StudentAttendance,
-            (StudentAttendance.student_id == Students.id) & 
-            (StudentAttendance.date == report_date) & 
-            (StudentAttendance.status.in_(['absent', 'late']))
+            (Students.id == StudentAttendance.student_id) &
+            (StudentAttendance.date == absent_subq.c.date1) &
+            (StudentAttendance.status == 'absent')
         ).join(
-            ParentsContact,
-            ParentsContact.student_id == Students.id
-        ).group_by(Students.id).all()
-        
-        if not problem_students:
-            flash('No attendance issues with parent contact info found for selected date', 'warning')
-            return redirect(url_for('send_notifications'))
-        
-        notification_count = 0
-        for student, issue_count in problem_students:
-            message = (
-                f"Attendance Notification: {student.name} (Grade {student.grade}) "
-                f"was marked as {'absent' if issue_count == 1 else 'late'} on {report_date.strftime('%m/%d/%Y')}"
+            StudentAttendance,
+            (Students.id == StudentAttendance.student_id) &
+            (StudentAttendance.date == absent_subq.c.date2) &
+            (StudentAttendance.status == 'absent')
+        ).join(
+            StudentAttendance,
+            (Students.id == StudentAttendance.student_id) &
+            (StudentAttendance.date == absent_subq.c.date3) &
+            (StudentAttendance.status == 'absent')
+        ).union(
+            db.session.query(
+                Students.id,
+                Students.name
+            ).join(
+                late_subq, Students.id == late_subq.c.student_id
+            ).join(
+                StudentAttendance,
+                (Students.id == StudentAttendance.student_id) &
+                (StudentAttendance.date == late_subq.c.date1) &
+                (StudentAttendance.status == 'late')
+            ).join(
+                StudentAttendance,
+                (Students.id == StudentAttendance.student_id) &
+                (StudentAttendance.date == late_subq.c.date2) &
+                (StudentAttendance.status == 'late')
+            ).join(
+                StudentAttendance,
+                (Students.id == StudentAttendance.student_id) &
+                (StudentAttendance.date == late_subq.c.date3) &
+                (StudentAttendance.status == 'late')
             )
-            
-            notification = Notification(
-                student_id=student.id,
-                parent_id=student.parent_contact.student_id,
-                message=message,
-                date_sent=datetime.utcnow()
-            )
-            db.session.add(notification)
-            
-            # Send email
-            try:
-                msg = Message(
-                    "Attendance Notification",
-                    recipients=[student.parent_contact.email],
-                    body=message,
-                    sender=app.config['MAIL_DEFAULT_SENDER']
-                )
-                mail.send(msg)
-                notification.email_sent = True
-                notification_count += 1
-            except Exception as e:
-                app.logger.error(f"Failed to send email for student {student.id}: {str(e)}")
-        
-        db.session.commit()
-        flash(f'Successfully sent {notification_count} notifications', 'success')
-        return redirect(url_for('notification_report', date=report_date.strftime('%Y-%m-%d')))
-    
-    return render_template('send_notifications.html')
+        ).distinct().all()
 
-@app.route('/dean_dash/notification_report/<date>')
-@login_required
-def notification_report(date):
-    if not session.get('role') == 'Dean':
-        flash('Access denied', 'danger')
-        return redirect(url_for('index_dean'))
-    
-    try:
-        report_date = datetime.strptime(date, '%Y-%m-%d').date()
-    except ValueError:
-        flash('Invalid date format', 'danger')
-        return redirect(url_for('send_notifications'))
-    
-    notifications = (
-        Notification.query
-        .join(Students, Notification.student_id == Students.id)
-        .join(ParentsContact, Notification.parent_id == ParentsContact.student_id)
-        .filter(db.func.date(Notification.date_sent) == report_date)
-        .all()
-    )
-    
-    return render_template(
-        'notification_report.html',
-        notifications=notifications,
-        report_date=report_date
-    )
+        return students
+
+    except Exception as e:
+        print(f"Error fetching students with consecutive issues: {e}")
+        return []
+
+@app.route('/consecutive_issues')
+def consecutive_issues():
+    if 'loggedin' in session and (session['role'] in ['Dean', 'Principal']):
+        students = get_students_with_consecutive_issues()
+        return render_template('consecutive_issues.html', students=students)
+    return redirect(url_for('login'))
 
 @app.route('/principal_dash/generate_monthly_report')
 def index_gen_monthly_rep():
